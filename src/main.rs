@@ -51,7 +51,7 @@ impl Sandbox {
             for cell in rows.iter() {
                 match cell {
                     true => {
-                        output.push_str(&format!("{}[0;31m█{}[0;37m", 27 as char, 27 as char) );
+                        output.push('█' );
                     }
                     false => {
                         output.push(' ');
@@ -104,6 +104,6 @@ fn main() {
         sandbox.print();
 
         println!("{:?}", time.elapsed());
-        sleep(Duration::from_millis(50))
+        sleep(Duration::from_millis(10))
     }
 }
