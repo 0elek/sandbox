@@ -17,13 +17,13 @@ static NEIGHBOURS: [(i32, i32); 8] = [
 
 #[derive(Debug, Clone, Copy)]
 struct Sandbox {
-    cells: [[Cell; WIDTH]; HEIGHT],
+    cells: [[bool; WIDTH]; HEIGHT],
 }
 
 impl Sandbox {
     fn new() -> Sandbox {
         Sandbox {
-            cells: ([[Cell::new(); WIDTH]; HEIGHT]),
+            cells: ([[false; WIDTH]; HEIGHT]),
         }
     }
     fn neighbours(&self, x: usize, y: usize) -> u8 {
@@ -33,13 +33,11 @@ impl Sandbox {
             let x2 = x as i32 + dx;
             let y2 = y as i32 + dy;
 
-            if x2 >= 0 && x2 < WIDTH as i32 && y2 >= 0 && y2 < HEIGHT as i32 {
-                if self.cells[y2 as usize][x2 as usize].alive {
-                    if count > 4 {
-                        return count;
-                    }
-                    count += 1;
+            if x2 >= 0 && x2 < WIDTH as i32 && y2 >= 0 && y2 < HEIGHT as i32 && self.cells[y2 as usize][x2 as usize] {
+                if count > 4 {
+                    return count;
                 }
+                count += 1;
             }
         }
         count
@@ -47,20 +45,22 @@ impl Sandbox {
 
     fn print(&self) {
         print!("{}[2J", 27 as char);
+        let mut output :String = String::new();
+
         for rows in self.cells.iter() {
             for cell in rows.iter() {
-                match cell.alive {
+                match cell {
                     true => {
-                        print!("{}[0;31m█{}[0;37m", 27 as char, 27 as char);
-                        //{}", self.neighbours(count2 as usize - 1, count as usize - 1));
+                        output.push_str(&format!("{}[0;31m█{}[0;37m", 27 as char, 27 as char) );
                     }
                     false => {
-                        print!("░");
+                        output.push(' ');
                     }
                 }
             }
-            println!();
+            output.push('\n');
         }
+        print!("{}", output);
     }
     fn update(&mut self) {
         let mut new_cells = self.cells;
@@ -69,28 +69,17 @@ impl Sandbox {
             for (x, cell) in rows.iter().enumerate() {
                 let n = self.neighbours(x, y);
 
-                if cell.alive {
-                    if n < 2 || n > 3 {
-                        new_cells[y][x].alive = false;
+                if *cell {
+                    if !(2..=3).contains(&n) {
+                        new_cells[y][x] = false;
                     }
                 } else if n == 3 {
-                    new_cells[y][x].alive = true;
+                    new_cells[y][x] = true;
                 }
             }
         }
 
         self.cells = new_cells;
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
-struct Cell {
-    alive: bool,
-}
-
-impl Cell {
-    fn new() -> Cell {
-        Cell { alive: false }
     }
 }
 
@@ -102,7 +91,7 @@ fn main() {
         let mut rng = rand::thread_rng();
         let x: usize = rng.gen_range(0..WIDTH);
         let y: usize = rng.gen_range(0..HEIGHT);
-        sandbox.cells[y][x].alive = true;
+        sandbox.cells[y][x] = true;
         i -= 1;
     }
     sandbox.print();
